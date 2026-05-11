@@ -1,0 +1,12 @@
+*.pth
+*.pt
+*.onnx
+__pycache__/
+*.pyc
+.env
+gfpgan/
+weights/
+*.egg-info/
+dist/
+build/
+.DS_Store
