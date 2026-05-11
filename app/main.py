@@ -43,7 +43,7 @@ async def enhance_super_resolution(
     enhanced = enhance_sr(image, scale=scale)
     elapsed = int((time.time() - start) * 1000)
 
-    psnr = compute_psnr(image, enhanced[:image.shape[0], :image.shape[1]])
+    psnr = compute_psnr(image, enhanced, scale=scale)
     result_bytes = image_to_bytes(enhanced)
 
     return StreamingResponse(

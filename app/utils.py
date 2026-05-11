@@ -32,8 +32,13 @@ def image_to_bytes(image: np.ndarray, format: str = "PNG") -> bytes:
     return buf.getvalue()
 
 
-def compute_psnr(original: np.ndarray, enhanced: np.ndarray) -> float:
-    mse = np.mean((original.astype(float) - enhanced.astype(float)) ** 2)
+def compute_psnr(lr_image: np.ndarray, sr_image: np.ndarray, scale: int) -> float:
+    # Upscale LR to HR domain via bicubic — fair comparison in same domain
+    h, w = lr_image.shape[:2]
+    bicubic = np.array(
+        Image.fromarray(lr_image).resize((w * scale, h * scale), Image.BICUBIC)
+    )
+    mse = np.mean((bicubic.astype(float) - sr_image.astype(float)) ** 2)
     if mse == 0:
         return float("inf")
     return 20 * np.log10(255.0 / np.sqrt(mse))
