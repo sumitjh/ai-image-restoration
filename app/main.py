@@ -3,7 +3,7 @@ from fastapi.responses import StreamingResponse, JSONResponse
 import io
 import time
 
-from app.models import enhance_sr, enhance_face
+from app.models import enhance_sr, enhance_face, denoise
 from app.utils import validate_image, load_image, image_to_bytes, compute_psnr
 
 app = FastAPI(
@@ -15,7 +15,7 @@ app = FastAPI(
 
 @app.get("/api/v1/health")
 def health():
-    return {"status": "ok", "models": ["real-esrgan", "gfpgan"]}
+    return {"status": "ok", "models": ["real-esrgan", "gfpgan", "fastNlMeans"]}
 
 
 @app.get("/api/v1/models")
@@ -24,6 +24,7 @@ def list_models():
         "models": [
             {"id": "sr", "name": "Real-ESRGAN", "description": "Super resolution (2x, 4x)", "scales": [2, 4]},
             {"id": "face", "name": "GFPGAN", "description": "Face restoration and enhancement"},
+            {"id": "denoise", "name": "FastNlMeans", "description": "Color image denoising (strength 1-30)"},
         ]
     }
 
@@ -53,6 +54,33 @@ async def enhance_super_resolution(
             "X-Processing-Time-Ms": str(elapsed),
             "X-PSNR": f"{psnr:.2f}",
             "X-Scale": str(scale),
+        }
+    )
+
+
+@app.post("/api/v1/enhance/denoise")
+async def enhance_denoise(
+    file: UploadFile = File(...),
+    strength: int = Query(default=10, ge=1, le=30),
+):
+    contents = await file.read()
+    valid, error = validate_image(contents)
+    if not valid:
+        raise HTTPException(status_code=400, detail=error)
+
+    image = load_image(contents)
+    start = time.time()
+    denoised = denoise(image, strength=strength)
+    elapsed = int((time.time() - start) * 1000)
+
+    result_bytes = image_to_bytes(denoised)
+
+    return StreamingResponse(
+        io.BytesIO(result_bytes),
+        media_type="image/png",
+        headers={
+            "X-Processing-Time-Ms": str(elapsed),
+            "X-Strength": str(strength),
         }
     )
 
