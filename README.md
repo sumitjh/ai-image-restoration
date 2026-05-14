@@ -2,6 +2,8 @@
 
 REST API for image enhancement using Real-ESRGAN (super resolution), GFPGAN (face restoration), and OpenCV FastNlMeans (denoising). Built with FastAPI, containerised with Docker.
 
+**[Live Demo on HuggingFace Spaces](https://huggingface.co/spaces/sumitjh/ai-image-restoration)** — try super resolution, face restoration, and denoising in the browser, no setup required.
+
 ## Models
 
 | ID | Name | Description |
